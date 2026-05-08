@@ -1,0 +1,1299 @@
+<!DOCTYPE html
+    <div class="card">
+      <div class="card-title">💳 Metodi di Pagamento</div>
+      <div id="bil-metodi"></div>
+    </div>>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malati di Fanta — Gestionale</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --nero:#09090b;--bg:#0f0f13;--bg2:#16161c;--bg3:#1e1e26;--bg4:#252530;
+  --border:#2a2a38;--border2:#38384a;
+  --oro:#c9a84c;--oro2:#e8c96a;--oro-dim:#7a6230;--oro-bg:#1a1508;
+  --text:#e2e2f0;--text2:#a0a0b8;--text3:#606078;
+  --green:#3ecf8e;--green-bg:#0d2e1a;
+  --red:#f87171;--red-bg:#2e0d0d;
+  --blue:#60a5fa;--blue-bg:#0d1a2e;
+  --purple:#a78bfa;--purple-bg:#1a0d2e;
+  --yellow:#fbbf24;
+  --r:10px;--r2:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+input,select,textarea,button{font-family:'DM Sans',sans-serif;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#0a0a0a 0%,#1a150a 100%);
+  border-bottom:1px solid var(--oro-dim);
+  padding:16px 32px;
+  display:flex;align-items:center;gap:20px;
+  position:sticky;top:0;z-index:100;
+}
+.logo-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--oro);letter-spacing:3px;}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:1px;}
+.save-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;opacity:0;transition:.3s;}
+.save-dot.show{opacity:1;}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;gap:0;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:0 32px;
+  overflow-x:auto;
+  position:sticky;top:64px;z-index:99;
+}
+.tab{
+  padding:13px 20px;font-size:13px;font-weight:600;
+  color:var(--text3);cursor:pointer;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all .15s;letter-spacing:.3px;
+}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--oro);border-bottom-color:var(--oro);}
+
+/* ── CONTENT ── */
+.content{padding:28px 32px;max-width:1300px;margin:0 auto;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border-radius:var(--r2);border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;letter-spacing:.3px;}
+.btn-oro{background:var(--oro);color:var(--nero);}
+.btn-oro:hover{background:var(--oro2);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-ghost:hover{border-color:var(--oro);color:var(--oro);}
+.btn-red{background:var(--red-bg);border:1px solid var(--red);color:var(--red);}
+.btn-red:hover{background:var(--red);color:#fff;}
+.btn-green{background:var(--green-bg);border:1px solid var(--green);color:var(--green);}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:18px;overflow:hidden;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--oro);letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;}
+.stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;}
+.stat-l{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:5px;}
+.stat-v{font-family:'DM Mono',monospace;font-size:21px;font-weight:500;}
+.c-oro{color:var(--oro);}.c-green{color:var(--green);}.c-red{color:var(--red);}.c-blue{color:var(--blue);}.c-purple{color:var(--purple);}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch;}
+.tbl{width:100%;min-width:520px;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;padding:9px 13px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);border-bottom:2px solid var(--border);font-weight:600;background:var(--bg3);white-space:nowrap;}
+.tbl td{padding:9px 13px;border-bottom:1px solid #1a1a24;white-space:nowrap;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#1e1e2a;}
+.tbl .mono{font-family:'DM Mono',monospace;font-size:12px;}
+.tbl .tot td{border-top:2px solid var(--oro-dim);font-weight:700;color:var(--oro);background:var(--oro-bg);}
+
+/* ── BADGES ── */
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.8px;text-transform:uppercase;display:inline-block;}
+.b-green{background:var(--green-bg);color:var(--green);}
+.b-red{background:var(--red-bg);color:var(--red);}
+.b-oro{background:var(--oro-bg);color:var(--oro);}
+.b-blue{background:var(--blue-bg);color:var(--blue);}
+.b-purple{background:var(--purple-bg);color:var(--purple);}
+.b-gray{background:var(--bg4);color:var(--text2);}
+
+/* ── SEARCH ── */
+.search-row{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap;}
+.search{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:9px 14px;color:var(--text);font-size:13px;flex:1;min-width:200px;}
+.search:focus{outline:none;border-color:var(--oro);}
+.search::placeholder{color:var(--text3);}
+.pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);color:var(--text3);cursor:pointer;transition:all .15s;}
+.pill.active,.pill:hover{border-color:var(--oro);color:var(--oro);background:var(--oro-bg);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:#000a;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:680px;max-height:90vh;overflow-y:auto;}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--oro);letter-spacing:2px;}
+.modal-close{background:transparent;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:4px;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:22px;}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+
+/* ── FORM ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-row.full{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+.form-input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;color:var(--text);font-size:13px;}
+.form-input:focus{outline:none;border-color:var(--oro);}
+.form-input::placeholder{color:var(--text3);}
+.form-select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:9px 12px;color:var(--text);font-size:13px;cursor:pointer;}
+.form-select:focus{outline:none;border-color:var(--oro);}
+
+/* ── MANAGER CARD ── */
+.manager-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;transition:border-color .2s;}
+.manager-card:hover{border-color:var(--oro-dim);}
+.manager-head{padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;}
+.manager-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--oro-dim),var(--oro));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--nero);flex-shrink:0;}
+.manager-info{flex:1;min-width:0;}
+.manager-nome{font-weight:700;font-size:14px;}
+.manager-meta{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.manager-stats{text-align:right;flex-shrink:0;}
+.manager-totale{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;}
+.manager-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.manager-detail{display:none;padding:0 18px 16px;border-top:1px solid var(--border);}
+.manager-detail.open{display:block;}
+.iscrizione-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.iscrizione-row:last-child{border-bottom:none;}
+.premio-row{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:9px 14px;border-bottom:1px solid #1a1a24;font-size:13px;}
+.premio-row:last-child{border-bottom:none;}
+.premio-row:hover{background:#1b1b24;}
+
+/* ── TOGGLE ── */
+.toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg4);border-radius:20px;transition:.2s;}
+.toggle input:checked+.toggle-slider{background:var(--green);}
+.toggle-slider:before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px);}
+
+/* ── COMP CARD ── */
+.comp-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;}
+.comp-head{padding:12px 18px;background:linear-gradient(90deg,#1a1508,#0f0f13);border-bottom:1px solid var(--oro-dim);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.comp-name-lbl{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--oro);letter-spacing:2px;flex:1;}
+.win-select{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);padding:6px 10px;font-size:12px;width:100%;max-width:240px;}
+.win-select:focus{outline:none;border-color:var(--oro);}
+.win-select.has{border-color:var(--green);color:var(--green);}
+.pag-btn{width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:13px;transition:all .2s;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.pag-btn.yes{background:var(--green);border-color:var(--green);color:#fff;}
+.spesa-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid #1a1a24;font-size:13px;width:100%;box-sizing:border-box;}
+.spesa-row:last-child{border-bottom:none;}
+.empty{text-align:center;padding:40px;color:var(--text3);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:800px){.grid2{grid-template-columns:1fr;}}
+
+@media(max-width:600px){
+  header{padding:12px 16px;flex-wrap:wrap;gap:10px;}
+  .logo-title{font-size:22px;letter-spacing:2px;}
+  .header-stats{gap:10px;}
+  .hstat-v{font-size:13px;}
+  .tabs{padding:0 8px;}
+  .tab{padding:10px 12px;font-size:12px;}
+  .content{padding:14px 12px;}
+  .card{padding:14px 14px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .g2,.g3{grid-template-columns:1fr;}
+  .search-row{flex-direction:column;align-items:stretch;}
+  .search{min-width:unset;}
+  .manager-head{flex-wrap:wrap;gap:8px;}
+  .m-right{text-align:left;}
+  .premio-row{grid-template-columns:1fr 60px;gap:6px;}
+  .premio-row .win-select,.premio-row .pag-btn{grid-column:1/-1;}
+}
+
+#syncDot { transition: background 0.4s; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+#syncDot.ok { animation: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-title">🏆 Malati di Fanta</div>
+    <div class="logo-sub">Gestionale Premi · Stagione 2025/26</div>
+  </div>
+  <div style="flex:1"></div>
+  <span class="save-dot" id="saveDot"></span>
+  <span id="syncStatus" style="display:flex;align-items:center;gap:6px;margin-left:12px;background:var(--bg3);padding:5px 12px;border-radius:20px;border:1px solid var(--border);">
+    <span id="syncDot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;transition:background .4s;flex-shrink:0;animation:pulse 1.5s infinite;"></span>
+    <span id="syncText" style="font-size:11px;color:var(--text2);white-space:nowrap;">Connessione...</span>
+  </span>
+  <span id="syncStatus" style="font-size:11px;color:var(--text3);margin-left:8px;display:flex;align-items:center;gap:5px;">
+    <span id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--text3);display:inline-block;"></span>
+    <span id="syncText">Connessione...</span>
+  </span>
+  <span style="font-size:11px;color:var(--text3);">Auto-salvato</span>
+</header>
+
+<div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:5px 32px;display:flex;align-items:center;gap:12px;justify-content:flex-end;">
+  <span id="syncStatus" style="font-size:11px;color:var(--oro);">☁ Connessione...</span>
+  <button class="btn btn-ghost btn-xs" onclick="exportData()" title="Backup JSON">⬇ Backup</button>
+  <button class="btn btn-ghost btn-xs" onclick="document.getElementById('importFile').click()" title="Ripristina da backup">⬆ Ripristina</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+</div>
+<div class="tabs">
+  <div class="tab active" data-page="dashboard" onclick="nav('dashboard')">📊 Dashboard</div>
+  <div class="tab" data-page="manager" onclick="nav('manager')">👤 Manager / Rubrica</div>
+  <div class="tab" data-page="tornei" onclick="nav('tornei')">🏆 Tornei</div>
+  <div class="tab" data-page="competizioni" onclick="nav('competizioni')">⚽ Competizioni</div>
+  <div class="tab" data-page="bilancio" onclick="nav('bilancio')">💰 Bilancio</div>
+  <div class="tab" data-page="spese" onclick="nav('spese')">💸 Spese</div>
+</div>
+
+<div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-row" id="dash-stats"></div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">💳 Quote Mancanti</div><div id="dash-quote-mancanti"></div></div>
+      <div class="card"><div class="card-title">💰 Premi da Pagare</div><div id="dash-premi-da-pagare"></div></div>
+    </div>
+    <div class="card"><div class="card-title">🏆 Ultimi Vincitori Inseriti</div><div id="dash-vincitori"></div></div>
+  </div>
+
+  <!-- MANAGER -->
+  <div class="page" id="page-manager">
+    <div class="search-row">
+      <input class="search" placeholder="🔍 Cerca manager per nome, cellulare o email..." id="searchManager" oninput="renderManager()">
+      <button class="btn btn-oro" onclick="openModalManager()">+ Aggiungi Manager</button>
+    </div>
+    <div id="managerList"></div>
+  </div>
+
+  <!-- TORNEI -->
+  <div class="page" id="page-tornei">
+    <div class="search-row">
+      <span style="flex:1;font-size:13px;color:var(--text2);">Gestisci tornei e competizioni — tutto modificabile</span>
+      <button class="btn btn-oro" onclick="openModalTorneo()">+ Nuovo Torneo</button>
+    </div>
+    <div id="torneiList"></div>
+  </div>
+
+  <!-- COMPETIZIONI -->
+  <div class="page" id="page-competizioni">
+    <div class="search-row">
+      <input class="search" placeholder="🔍 Cerca competizione..." id="searchComp" oninput="renderComp()">
+    </div>
+    <div class="pills" id="compPills" style="margin-bottom:18px;"></div>
+    <div id="compList"></div>
+  </div>
+
+  <!-- BILANCIO -->
+  <div class="page" id="page-bilancio">
+    <div class="stats-row" id="bil-stats"></div>
+    <div class="card"><div class="card-title">📋 Incassi per Torneo</div><div class="tbl-wrap"><table class="tbl" id="bil-table"></table></div></div>
+  </div>
+
+  <!-- SPESE -->
+  <div class="page" id="page-spese">
+    <div class="search-row">
+      <span style="flex:1"></span>
+      <button class="btn btn-oro" onclick="openModalSpesa()">+ Aggiungi Spesa</button>
+    </div>
+    <div class="card"><div class="card-title">💸 Registro Spese</div><div id="speseList"></div></div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- ══ MODAL MANAGER ══ -->
+<div class="modal-overlay" id="modalManager">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalManagerTitle">Nuovo Manager</div>
+      <button class="modal-close" onclick="closeModal('modalManager')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="m-nome" placeholder="Mario Rossi"></div>
+        <div class="form-group"><label class="form-label">Nickname</label><input class="form-input" id="m-nick" placeholder="SuperMario"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Cellulare</label><input class="form-input" id="m-cell" placeholder="+39 333 1234567"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="m-email" type="email" placeholder="mario@email.com"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label class="form-label">Metodo Pagamento</label>
+          <select class="form-input" id="m-pagamento">
+            <option value="">— Seleziona —</option>
+            <option value="paypal">PayPal</option>
+            <option value="bonifico">Bonifico</option>
+            <option value="satispay">Satispay</option>
+            <option value="contanti">Contanti</option>
+            <option value="altro">Altro</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="m-note" placeholder="Note aggiuntive..."></div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="form-label" style="margin-bottom:10px;">Iscrizioni Tornei</div>
+        <div id="m-iscrizioni"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="addIscrizione()">+ Aggiungi Torneo</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalManager')">Annulla</button>
+      <button class="btn btn-oro" onclick="saveManager()">Salva Manager</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL TORNEO ══ -->
+<div class="modal-overlay" id="modalTorneo">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTorneoTitle">Nuovo Torneo</div>
+      <button class="modal-close" onclick="closeModal('modalTorneo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nome Torneo *</label><input class="form-input" id="t-nome" placeholder="Es. Scudetto Slim"></div>
+        <div class="form-group"><label class="form-label">Tipo</label>
+          <select class="form-select" id="t-tipo">
+            <option value="classic">Classic</option><option value="mantra">Mantra</option>
+            <option value="slim">Slim</option><option value="mondiale">Mondiale</option><option value="altro">Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Quota Iscrizione (€)</label><input class="form-input" id="t-quota" type="number" placeholder="50"></div>
+        <div class="form-group"><label class="form-label">N° Squadre</label><input class="form-input" id="t-squadre" type="number" placeholder="10" min="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Stagione</label><input class="form-input" id="t-stagione" placeholder="2025/26" value="2025/26"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="t-note" placeholder="Note..."></div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="form-label" style="margin-bottom:10px;">Competizioni del Torneo</div>
+        <div id="t-comps"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="addCompTorneo()">+ Aggiungi Competizione</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalTorneo')">Annulla</button>
+      <button class="btn btn-oro" onclick="saveTorneo()">Salva Torneo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SPESA ══ -->
+<div class="modal-overlay" id="modalSpesa">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <div class="modal-title">Nuova Spesa</div>
+      <button class="modal-close" onclick="closeModal('modalSpesa')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row full"><div class="form-group"><label class="form-label">Descrizione *</label><input class="form-input" id="sp-desc" placeholder="Es. Abbonamento Canva"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Importo (€) *</label><input class="form-input" id="sp-importo" type="number" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="sp-data" type="date"></div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label class="form-label">Note</label><input class="form-input" id="sp-note" placeholder="Note aggiuntive..."></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalSpesa')">Annulla</button>
+      <button class="btn btn-oro" onclick="saveSpesa()">Salva</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE + DB
+// ═══════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDq3895cP4YAbvpB5G3Wm9l99qygjN1xrk",
+  authDomain: "gestionale-malati-di-fanta.firebaseapp.com",
+  projectId: "gestionale-malati-di-fanta",
+  storageBucket: "gestionale-malati-di-fanta.firebasestorage.app",
+  messagingSenderId: "976916467238",
+  appId: "1:976916467238:web:673819ba149dfb3e4460e7"
+};
+firebase.initializeApp(firebaseConfig);
+const fsdb = firebase.firestore();
+const DOC_REF = fsdb.collection('gestionale').doc('dati');
+const DB_KEY = 'mdf_v3';
+
+let DB = {
+  managers: [], tornei: [], competizioni: [],
+  vincitori: {}, iscrizioni: [], spese: []
+};
+let _saveTimer = null;
+let currentPage = 'dashboard';
+
+function setSyncStatus(stato, testo) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  if (!dot || !txt) return;
+  const colori = { ok: 'var(--green)', err: 'var(--red)', wait: '#fbbf24' };
+  dot.style.background = colori[stato] || colori.wait;
+  txt.textContent = testo;
+  if (stato === 'ok') dot.classList.add('ok'); else dot.classList.remove('ok');
+}
+
+function loadDB() {
+  setSyncStatus('wait', 'Connessione...');
+
+  // 1. Carica subito da localStorage come cache
+  try {
+    const s = localStorage.getItem(DB_KEY);
+    if (s) { DB = {...DB, ...JSON.parse(s)}; renderPage(currentPage); }
+    else { initDefaultData(); }
+  } catch(e) { initDefaultData(); }
+
+  // 2. Connetti Firestore con timeout di 10 secondi
+  let connected = false;
+  const timeout = setTimeout(() => {
+    if (!connected) setSyncStatus('err', 'Timeout — verifica regole Firestore');
+  }, 10000);
+
+  DOC_REF.onSnapshot({ includeMetadataChanges: true }, snap => {
+    connected = true;
+    clearTimeout(timeout);
+
+    const fromCache = snap.metadata.fromCache;
+    const hasPendingWrites = snap.metadata.hasPendingWrites;
+
+    if (snap.exists) {
+      const remote = snap.data();
+      // Merge: Firestore vince sui dati remoti
+      DB = {...DB, ...remote};
+      try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+      if (fromCache) {
+        setSyncStatus('wait', 'Cache locale...');
+      } else {
+        setSyncStatus('ok', 'Sincronizzato ✓');
+        renderPage(currentPage);
+      }
+    } else {
+      // Documento non esiste ancora: crealo
+      setSyncStatus('wait', 'Prima configurazione...');
+      _pushFirestore();
+    }
+  }, err => {
+    clearTimeout(timeout);
+    let msg = 'Errore';
+    if (err.code === 'permission-denied') msg = 'Errore: regole Firestore — vedi istruzioni';
+    else if (err.code === 'unavailable') msg = 'Offline — dati locali';
+    else msg = 'Errore: ' + err.code;
+    setSyncStatus('err', msg);
+    console.error('Firestore error:', err.code, err.message);
+  });
+}
+
+function _pushFirestore() {
+  setSyncStatus('wait', 'Salvataggio...');
+  // Rimuovi funzioni non serializzabili
+  const toSave = JSON.parse(JSON.stringify(DB));
+  DOC_REF.set(toSave)
+    .then(() => {
+      setSyncStatus('ok', 'Sincronizzato ✓');
+      renderPage(currentPage);
+    })
+    .catch(e => {
+      let msg = 'Errore sync';
+      if (e.code === 'permission-denied') msg = '⚠ Regole Firestore da configurare!';
+      setSyncStatus('err', msg);
+      console.error('Push error:', e.code, e.message);
+      // Mostra alert solo la prima volta
+      if (e.code === 'permission-denied' && !window._permAlertShown) {
+        window._permAlertShown = true;
+        alert('⚠ Firestore: accesso negato.\n\nVai su Firebase Console → Firestore → Regole e imposta:\n\nrules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /gestionale/dati {\n      allow read, write: if true;\n    }\n  }\n}');
+      }
+    });
+}
+
+function saveDB() {
+  // Cache locale immediata
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+  // Feedback visivo
+  const d = document.getElementById('saveDot');
+  if (d) { d.classList.add('show'); setTimeout(() => d.classList.remove('show'), 1000); }
+  // Debounce scrittura Firestore (800ms)
+  setSyncStatus('wait', 'Salvataggio...');
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => _pushFirestore(), 800);
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function fmt(n) { return '€' + Number(n||0).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+// ═══════════════════════════════════════════════════════════════
+// DEFAULT DATA (dal PDF)
+// ═══════════════════════════════════════════════════════════════
+function initDefaultData() {
+  // TORNEI
+  const torniDef = [
+    {id:'scudetto', nome:'Scudetto Slim', tipo:'slim', quota:35, stagione:'2025/26', note:'7 campionati nazionali'},
+    {id:'tsm', nome:'TSM', tipo:'classic', quota:60, stagione:'2025/26', note:'Torneo Semi Manageriale',squadreAttese:10},
+    {id:'mantra1', nome:'Mantra League (Pro 1+2)', tipo:'mantra', quota:50, stagione:'2025/26', note:'',squadreAttese:20},
+    {id:'mantra2', nome:'Mantra League (Pro 3+4)', tipo:'mantra', quota:50, stagione:'2025/26', note:'',squadreAttese:14},
+    {id:'classic1', nome:'Classic League 1', tipo:'classic', quota:50, stagione:'2025/26', note:'',squadreAttese:10},
+    {id:'classic2', nome:'Classic League 2', tipo:'classic', quota:50, stagione:'2025/26', note:'',squadreAttese:12},
+    {id:'mondiale_t', nome:'Mondiale per Club (Torneo)', tipo:'mondiale', quota:50, stagione:'2025/26', note:'',squadreAttese:32},
+    {id:'mondiale_l', nome:'Mondiale per Club (Listone)', tipo:'mondiale', quota:50, stagione:'2025/26', note:'',squadreAttese:19},
+    {id:'ifc', nome:'IFC', tipo:'altro', quota:15, stagione:'2025/26', note:'Italian Fanta Competitor',squadreAttese:10},
+    {id:'riffa', nome:'Riffa', tipo:'altro', quota:10, stagione:'2025/26', note:'',squadreAttese:11},
+    {id:'squid', nome:'Squid Game', tipo:'altro', quota:20, stagione:'2025/26', note:'',squadreAttese:11},
+  ];
+  DB.tornei = torniDef;
+
+  // COMPETIZIONI
+  const compDef = [
+    // SLIM
+    {id:'slim_ita_1',torneoId:'scudetto',nome:'SLIM ITALIA — 1° posto',premio:100},{id:'slim_ita_2',torneoId:'scudetto',nome:'SLIM ITALIA — 2° posto',premio:60},{id:'slim_ita_3',torneoId:'scudetto',nome:'SLIM ITALIA — 3° posto',premio:40},
+    {id:'slim_eng_1',torneoId:'scudetto',nome:'SLIM INGHILTERRA — 1° posto',premio:100},{id:'slim_eng_2',torneoId:'scudetto',nome:'SLIM INGHILTERRA — 2° posto',premio:60},{id:'slim_eng_3',torneoId:'scudetto',nome:'SLIM INGHILTERRA — 3° posto',premio:40},
+    {id:'slim_ger_1',torneoId:'scudetto',nome:'SLIM GERMANIA — 1° posto',premio:100},{id:'slim_ger_2',torneoId:'scudetto',nome:'SLIM GERMANIA — 2° posto',premio:60},{id:'slim_ger_3',torneoId:'scudetto',nome:'SLIM GERMANIA — 3° posto',premio:40},
+    {id:'slim_esp_1',torneoId:'scudetto',nome:'SLIM SPAGNA — 1° posto',premio:100},{id:'slim_esp_2',torneoId:'scudetto',nome:'SLIM SPAGNA — 2° posto',premio:60},{id:'slim_esp_3',torneoId:'scudetto',nome:'SLIM SPAGNA — 3° posto',premio:40},
+    {id:'slim_fra_1',torneoId:'scudetto',nome:'SLIM FRANCIA — 1° posto',premio:100},{id:'slim_fra_2',torneoId:'scudetto',nome:'SLIM FRANCIA — 2° posto',premio:60},{id:'slim_fra_3',torneoId:'scudetto',nome:'SLIM FRANCIA — 3° posto',premio:40},
+    {id:'slim_por_1',torneoId:'scudetto',nome:'SLIM PORTOGALLO — 1° posto',premio:100},{id:'slim_por_2',torneoId:'scudetto',nome:'SLIM PORTOGALLO — 2° posto',premio:60},{id:'slim_por_3',torneoId:'scudetto',nome:'SLIM PORTOGALLO — 3° posto',premio:40},
+    {id:'slim_ola_1',torneoId:'scudetto',nome:'SLIM OLANDA — 1° posto',premio:100},{id:'slim_ola_2',torneoId:'scudetto',nome:'SLIM OLANDA — 2° posto',premio:60},{id:'slim_ola_3',torneoId:'scudetto',nome:'SLIM OLANDA — 3° posto',premio:40},
+    {id:'slim_cl_1',torneoId:'scudetto',nome:'CL SLIM — 1° posto',premio:100,vincitore:'OLYMPIQUE MARSIGLIA'},{id:'slim_cl_2',torneoId:'scudetto',nome:'CL SLIM — 2° posto',premio:60,vincitore:'NOTTINGHAM FOREST'},
+    {id:'slim_el_1',torneoId:'scudetto',nome:'EL SLIM — 1° posto',premio:80,vincitore:'ST. ETIENNE'},{id:'slim_el_2',torneoId:'scudetto',nome:'EL SLIM — 2° posto',premio:50,vincitore:'ADO DEN HAAG'},
+    {id:'slim_conf_1',torneoId:'scudetto',nome:'CONF SLIM — 1° posto',premio:60,vincitore:'BARCELLONA'},{id:'slim_conf_2',torneoId:'scudetto',nome:'CONF SLIM — 2° posto',premio:40,vincitore:'ATHLETIC BILBAO'},
+    {id:'slim_super',torneoId:'scudetto',nome:'SLIM SUPERCUP',premio:20,vincitore:'LIVERPOOL'},
+    // TSM
+    {id:'tsm_1',torneoId:'tsm',nome:'TSM — 1° posto',premio:200},{id:'tsm_2',torneoId:'tsm',nome:'TSM — 2° posto',premio:100},{id:'tsm_3',torneoId:'tsm',nome:'TSM — 3° posto',premio:60},{id:'tsm_4',torneoId:'tsm',nome:'TSM — 4° posto',premio:40},{id:'tsm_coppa',torneoId:'tsm',nome:'TSM — Coppa Italia',premio:60},{id:'tsm_ifc',torneoId:'tsm',nome:'TSM — Vincitore IFC',premio:60},
+    // MANTRA 1
+    {id:'man1_1',torneoId:'mantra1',nome:'MANTRA 1 — 1° posto',premio:105,vincitore:'BORUSSIA DORTMUND'},{id:'man1_2',torneoId:'mantra1',nome:'MANTRA 1 — 2° posto',premio:75,vincitore:'JUVENTUS'},{id:'man1_3',torneoId:'mantra1',nome:'MANTRA 1 — 3° posto',premio:55,vincitore:'SIVIGLIA'},
+    {id:'man2_1',torneoId:'mantra1',nome:'MANTRA 2 — 1° posto',premio:105,vincitore:'ATALANTA'},{id:'man2_2',torneoId:'mantra1',nome:'MANTRA 2 — 2° posto',premio:75,vincitore:'BENFICA'},{id:'man2_3',torneoId:'mantra1',nome:'MANTRA 2 — 3° posto',premio:55,vincitore:'VILLAREAL'},
+    {id:'man_cl_1',torneoId:'mantra1',nome:'CL MANTRA — 1° posto',premio:95,vincitore:'ARSENAL'},{id:'man_cl_2',torneoId:'mantra1',nome:'CL MANTRA — 2° posto',premio:65,vincitore:'AJAX'},
+    {id:'man_el_1',torneoId:'mantra1',nome:'EL MANTRA — 1° posto',premio:75,vincitore:'BORUSSIA DORTMUND'},{id:'man_el_2',torneoId:'mantra1',nome:'EL MANTRA — 2° posto',premio:45,vincitore:'LILLE'},
+    {id:'man_conf_1',torneoId:'mantra1',nome:'CONF MANTRA — 1° posto',premio:55,vincitore:'INTER'},{id:'man_conf_2',torneoId:'mantra1',nome:'CONF MANTRA — 2° posto',premio:35,vincitore:'MILAN'},
+    {id:'man_super',torneoId:'mantra1',nome:'SUPERCUP MANTRA',premio:20,vincitore:'ATALANTA'},{id:'man_ifc',torneoId:'mantra1',nome:'IFC MANTRA',premio:70},
+    // MANTRA 2
+    {id:'man3_1',torneoId:'mantra2',nome:'MANTRA 3 — 1° posto',premio:105,vincitore:'OLYMPIAKOS'},{id:'man3_2',torneoId:'mantra2',nome:'MANTRA 3 — 2° posto',premio:75,vincitore:'NOTTINGHAM FOREST'},{id:'man3_3',torneoId:'mantra2',nome:'MANTRA 3 — 3° posto',premio:55,vincitore:'MANCHESTER UNITED'},
+    {id:'man_cl2_1',torneoId:'mantra2',nome:'CL MANTRA2 — 1° posto',premio:95,vincitore:'GALATASARAY'},{id:'man_cl2_2',torneoId:'mantra2',nome:'CL MANTRA2 — 2° posto',premio:65,vincitore:'CHELSEA'},
+    {id:'man_el2_1',torneoId:'mantra2',nome:'EL MANTRA2 — 1° posto',premio:75,vincitore:'NOTTINGHAM FOREST'},{id:'man_el2_2',torneoId:'mantra2',nome:'EL MANTRA2 — 2° posto',premio:45,vincitore:'MANCHESTER UNITED'},
+    {id:'man_ifc2',torneoId:'mantra2',nome:'IFC MANTRA2',premio:70},
+    // CLASSIC
+    {id:'cla1_1',torneoId:'classic1',nome:'CLASSIC 1 — 1° posto',premio:105,vincitore:'REAL MADRID'},{id:'cla1_2',torneoId:'classic1',nome:'CLASSIC 1 — 2° posto',premio:75,vincitore:'ATALANTA'},{id:'cla1_3',torneoId:'classic1',nome:'CLASSIC 1 — 3° posto',premio:55,vincitore:'GIRONA'},
+    {id:'cla2_1',torneoId:'classic2',nome:'CLASSIC 2 — 1° posto',premio:105,vincitore:'INTER'},{id:'cla2_2',torneoId:'classic2',nome:'CLASSIC 2 — 2° posto',premio:75,vincitore:'BOLOGNA'},{id:'cla2_3',torneoId:'classic2',nome:'CLASSIC 2 — 3° posto',premio:55,vincitore:'JUVENTUS'},
+    {id:'cla_cl_1',torneoId:'classic1',nome:'CL CLASSIC — 1° posto',premio:95,vincitore:'BOLOGNA'},{id:'cla_cl_2',torneoId:'classic1',nome:'CL CLASSIC — 2° posto',premio:65,vincitore:'JUVENTUS'},
+    {id:'cla_el_1',torneoId:'classic1',nome:'EL CLASSIC — 1° posto',premio:75,vincitore:'AJAX'},{id:'cla_el_2',torneoId:'classic1',nome:'EL CLASSIC — 2° posto',premio:45,vincitore:'BORUSSIA DORTMUND'},
+    {id:'cla_conf_1',torneoId:'classic1',nome:'CONF CLASSIC — 1° posto',premio:55,vincitore:'MILAN'},{id:'cla_conf_2',torneoId:'classic1',nome:'CONF CLASSIC — 2° posto',premio:35,vincitore:'REAL MADRID'},
+    {id:'cla_super',torneoId:'classic1',nome:'SUPERCUP CLASSIC',premio:20,vincitore:'BENFICA'},{id:'cla_ifc',torneoId:'classic1',nome:'IFC CLASSIC',premio:70},
+    // MONDIALE
+    {id:'mond_t_1',torneoId:'mondiale_t',nome:'MONDIALE TORNEO — 1° posto',premio:1000,vincitore:'ATLETICO MADRID',pagato:true},
+    {id:'mond_t_2',torneoId:'mondiale_t',nome:'MONDIALE TORNEO — 2° posto',premio:300,vincitore:'VINCENZO',pagato:true},
+    {id:'mond_t_3',torneoId:'mondiale_t',nome:'MONDIALE TORNEO — 3° posto',premio:100,pagato:true},
+    {id:'mond_t_4',torneoId:'mondiale_t',nome:'MONDIALE TORNEO — 4° posto',premio:50,pagato:true},
+    {id:'mond_l_1',torneoId:'mondiale_l',nome:'MONDIALE LISTONE — 1° posto',premio:500,pagato:true},
+    {id:'mond_l_2',torneoId:'mondiale_l',nome:'MONDIALE LISTONE — 2° posto',premio:200,pagato:true},
+    {id:'mond_l_3',torneoId:'mondiale_l',nome:'MONDIALE LISTONE — 3° posto',premio:100,pagato:true},
+    {id:'mond_l_4',torneoId:'mondiale_l',nome:'MONDIALE LISTONE — 4° posto',premio:50,pagato:true},
+    // SQUID
+    {id:'squid_1',torneoId:'squid',nome:'SQUID GAME — 1° posto',premio:200},
+    // IFC
+    {id:'ifc_1',torneoId:'ifc',nome:'IFC — Vincitore CL',premio:80},{id:'ifc_2',torneoId:'ifc',nome:'IFC — Vincitore EL',premio:80},{id:'ifc_3',torneoId:'ifc',nome:'IFC — Vincitore CONF',premio:80},
+  ];
+  DB.competizioni = compDef;
+  // Vincitori precaricati
+  compDef.forEach(c => { if (c.vincitore) DB.vincitori[c.id] = {squadra:c.vincitore, managerId:null, pagato:c.pagato||false}; });
+
+  // MANAGERS (dal PDF)
+  const mgrs = [
+    {nome:'Giovanni Di Domenico',cell:'3451137109',email:'didomenico.giovanni1983@gmail.com'},
+    {nome:'Giacomo Spalluto',cell:'3478731283',email:'van.basten9@hotmail.it'},
+    {nome:'Marco Colombo',cell:'3395316260',email:'marcocolo21@gmail.com'},
+    {nome:'Giuseppe Pappalardo',cell:'3496342458',email:'joexy79@gmail.com'},
+    {nome:'Ciro Paolella',cell:'3925993757',email:'ciro.paolella92@gmail.com'},
+    {nome:'Luigi Minutiello',cell:'3331507168',email:'luiss270990@gmail.com'},
+    {nome:'Marcello Prelli',cell:'',email:'marcello.prelli@yahoo.it'},
+    {nome:'Francesco Energy',cell:'3319686147',email:'francescoquercia15@gmail.com'},
+    {nome:'Paolo Catanzaro',cell:'3270566482',email:'Long90@hotmail.it'},
+    {nome:'Stefano Delli Castelli',cell:'3398884880',email:'brujta14@hotmail.it'},
+    {nome:'Davide Inzeo',cell:'3383203929',email:'davide80i@hotmail.com'},
+    {nome:'Simone Sgavicchia',cell:'3423214475',email:'simone_rm@libero.it'},
+    {nome:'Massimiliano Bruttini',cell:'3396726862',email:'bruttini2012@gmail.com'},
+    {nome:'Vito Catanzaro',cell:'3383316015',email:'kiro_26@hotmail.it'},
+    {nome:'Antonio Melissa',cell:'3921296877',email:'antonio.melissa@unina.it'},
+    {nome:'Maurizio Russo',cell:'3703126038',email:'mauri81@gmail.com'},
+    {nome:'Alessandro Cioffi',cell:'3927828311',email:'cioffialex99@gmail.com'},
+    {nome:'Michele Belsito',cell:'3317326501',email:'michelebelsito@libero.it'},
+    {nome:'Umberto De Lucia',cell:'3473581698',email:'ubidelucia@hotmail.it'},
+    {nome:'Francesco Tartaglione',cell:'3356588640',email:'tarfrancesco@libero.it'},
+    {nome:'Fabio Tommasi',cell:'3289123398',email:'fabio.tommasi84@libero.it'},
+    {nome:'Gabriele Pastore',cell:'3284663199',email:'gabrielepastore.g@libero.it'},
+    {nome:'Francesco Cotroneo',cell:'3383058932',email:'cotroneo.francesco183@gmail.com'},
+    {nome:'Andrea Di Palo',cell:'3478710521',email:'andrea_dipalo@libero.it'},
+    {nome:'Bruno Di Masi',cell:'3331018769',email:'ilfresa@imsn.com'},
+    {nome:'Fabio Tornatore',cell:'3204817920',email:'fabio.torn@hotmail.it'},
+    {nome:'Valter Limongelli',cell:'3383045134',email:'valtermarechiaro@gmail.com'},
+    {nome:'Luca Natta',cell:'3481629364',email:'luca.natta8@gmail.com'},
+    {nome:'Rocco Figliucci',cell:'3791598115',email:'figliucci7@gmail.com'},
+    {nome:'Walter Fasano',cell:'3397791186',email:'wallfasa@yahoo.it'},
+    {nome:'Fabrizio Scuderi',cell:'351 541 5124',email:'fabryscuderi@gmail.com'},
+    {nome:'Filippo Ciccalè',cell:'3249972279',email:'filippo.ciccale@gmail.com'},
+    {nome:'Carmine Pisacane',cell:'3385822917',email:'carmine-pisacane@live.it'},
+    {nome:'Angelo Pierino',cell:'3295381449',email:'ngileddu@hotmail.it'},
+    {nome:'Michele Ferla',cell:'3467353695',email:'anisharock23@gmail.com'},
+    {nome:'Massimiliano Amato',cell:'3358161281',email:'avvocatoamato76@yahoo.com'},
+    {nome:'Matteo Bartolozzi',cell:'3476248808',email:'bartmatte24@gmail.com'},
+    {nome:'Salvatore Reccia',cell:'3391133392',email:'salvatore.reccia1982@gmail.com'},
+    {nome:'Roberto Paolini',cell:'3349578190',email:'duesensatre@gmail.com'},
+    {nome:'Daniele Bacoccola',cell:'3421098792',email:'Bacoccola90@libero.it'},
+    {nome:'Carlo Fiorotto',cell:'3498632072',email:'cf13@libero.it'},
+    {nome:'Andrea Vitiello',cell:'3406181434',email:'andre_v_@hotmail.it'},
+    {nome:'Gianmarco Tartaglione',cell:'3395097325',email:'gianmarcotartaglion@gmail.com'},
+    {nome:'Ismael Coulibaly',cell:'320 775 2436',email:'Kadersoncoul@gmail.com'},
+    {nome:'Giuseppe Ciadamidaro',cell:'3792997085',email:'giuseppedagate1683@gmail.com'},
+    {nome:'Alessandro Garofalo',cell:'334 856 0304',email:'alessiogarofalo666@gmail.com'},
+    {nome:'Alessandro Borsa',cell:'334 811 8658',email:'borsa.alessandro@gmail.com'},
+    {nome:'Emanuele Mastropietro',cell:'3316883070',email:'emanuelemastropietro83@gmail.com'},
+    {nome:'Gerardo De Martino',cell:'3204452658',email:'gerardocarabin@gmail.com'},
+    {nome:'Mauro Del Giudice',cell:'416-897-2956',email:'Maurodelg@rogers.com'},
+    {nome:'Filippo Pierbon',cell:'3297272641',email:'filippo.pierobon1@gmail.com'},
+    {nome:'Paolo Tumo',cell:'3518440656',email:'p.tumolo1@gmail.com'},
+    {nome:'Alessandro Ricci',cell:'3487198022',email:'Alexricci93@gmail.com'},
+    {nome:'Giovanni Grimaldi',cell:'+41789675758',email:'grigio120487@gmail.com'},
+    {nome:'Emanuele Forte',cell:'3272838362',email:'maolone0090@outlook.it'},
+    {nome:'Stefano Robaldo',cell:'3290193596',email:'stefano.robaldo.89@gmail.com'},
+    {nome:'Federico Sciolti',cell:'3333699687',email:'federicosciolti@libero.it'},
+    {nome:'Angelo Sorgente',cell:'3295381449',email:'ngileddu@hotmail.it'},
+    {nome:'Michele Picchiarelli',cell:'3927429604',email:'picchiarelli.michele@libero.it'},
+    {nome:'Franco Torcoli',cell:'3461297505',email:'mariofrancotocroli@gmail.com'},
+    {nome:'Alessandro Gazzoni',cell:'3451680219',email:'alegazzo49@gmail.com'},
+    {nome:'Anthony Balsamo',cell:'389 507 8820',email:'balsamoanth23@hotmail.com'},
+    {nome:'Roberto Fabiani',cell:'340642655',email:'fabiani.ro@tiscali.it'},
+    {nome:'Vincenzo Esposito',cell:'3291485023',email:'ciukino7@live.it'},
+    {nome:'Leonardo Spalluto',cell:'3247850740',email:'spalluto-leonardo@outlook.it'},
+    {nome:'Lorenzo Bertoncelli',cell:'3317459991',email:'lorenzobertoncelli@gmail.com'},
+    {nome:'Andrea Mangiameli',cell:'3348322940',email:'andrea.mangiameli98@gmail.com'},
+    {nome:'Antony Viceconte',cell:'3887855265',email:'viceconteantony1@gmail.com'},
+    {nome:'Francesco Caccamo',cell:'3473033690',email:'fgm3@hotmail.it'},
+    {nome:'Michele Straputicari',cell:'3470087432',email:'mikel_86@hotmail.it'},
+    {nome:'Ruben Capasso',cell:'3896842949',email:'capasso.ruben21@gmail.com'},
+    {nome:'Enrica Lezzi',cell:'347 361 7285',email:'e.lezzi@alice.it'},
+    {nome:'Francesco Trichini',cell:'3920867468',email:'francescotrichini.01@gmail.com'},
+    {nome:'Ismaele Pasini',cell:'3516366690',email:'ismaelepasini2201@gmail.com'},
+    {nome:'Daniele Mastropietro',cell:'3920501525',email:'danielemastropietro94@gmail.com'},
+  ];
+  DB.managers = mgrs.map(m => ({...m, id:uid(), note:''}));
+
+  // SPESE
+  DB.spese = [
+    {id:uid(), desc:'Abbonamento Canva', importo:0, data:'', note:'Importo da verificare'},
+    {id:uid(), desc:'IFC', importo:15, data:'', note:''},
+    {id:uid(), desc:'Rinnovo dominio sito', importo:50, data:'2026-04-11', note:'Pagato 11/4/26'},
+    {id:uid(), desc:'Quota gestione sito Roma', importo:35, data:'', note:''},
+    {id:uid(), desc:'Residuo IFC stagione precedente', importo:10, data:'', note:''},
+  ];
+
+  saveDB();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard:'Dashboard',manager:'Manager / Rubrica',tornei:'Tornei',
+  competizioni:'Competizioni & Vincitori',bilancio:'Bilancio',spese:'Spese'
+};
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`.tab[data-page='${page}']`).classList.add('active');
+  currentPage = page;
+  renderPage(page);
+}
+
+function renderPage(page) {
+  if (page==='dashboard') renderDashboard();
+  else if (page==='manager') renderManager();
+  else if (page==='tornei') renderTornei();
+  else if (page==='competizioni') renderComp();
+  else if (page==='bilancio') renderBilancio();
+  else if (page==='spese') renderSpese();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+function renderDashboard() {
+  // Stats
+  const totManagers = DB.managers.length;
+  const totPremi = DB.competizioni.reduce((s,c) => {
+    const v = DB.vincitori[c.id];
+    return s + (v&&v.squadra ? c.premio : 0);
+  },0);
+  const premiPagati = DB.competizioni.reduce((s,c) => {
+    const v = DB.vincitori[c.id];
+    return s + (v&&v.pagato ? c.premio : 0);
+  },0);
+  const premiDaPagare = totPremi - premiPagati;
+  const totSpese = DB.spese.reduce((s,sp) => s+(sp.importo||0), 0);
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat"><div class="stat-l">Manager Totali</div><div class="stat-v c-blue">${totManagers}</div></div>
+    <div class="stat"><div class="stat-l">Tornei Attivi</div><div class="stat-v c-oro">${DB.tornei.length}</div></div>
+    <div class="stat"><div class="stat-l">Premi Assegnati</div><div class="stat-v c-oro">${fmt(totPremi)}</div></div>
+    <div class="stat"><div class="stat-l">Premi Pagati</div><div class="stat-v c-green">${fmt(premiPagati)}</div></div>
+    <div class="stat"><div class="stat-l">Premi da Pagare</div><div class="stat-v c-red">${fmt(premiDaPagare)}</div></div>
+    <div class="stat"><div class="stat-l">Spese Totali</div><div class="stat-v c-red">${fmt(totSpese)}</div></div>
+  `;
+
+  // Quote mancanti
+  const mancanti = [];
+  DB.tornei.forEach(t => {
+    DB.managers.forEach(m => {
+      const isc = DB.iscrizioni.find(i => i.managerId===m.id && i.torneoId===t.id);
+      if (isc && !isc.quotaPagata) mancanti.push({manager:m.nome, torneo:t.nome, quota:isc.quota||t.quota});
+    });
+  });
+  document.getElementById('dash-quote-mancanti').innerHTML = mancanti.length
+    ? mancanti.slice(0,6).map(x=>`<div class="spesa-row"><span>${x.manager}</span><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;color:var(--text3);">${x.torneo}</span><span class="badge b-red">${fmt(x.quota)}</span></div></div>`).join('')
+    + (mancanti.length>6?`<div style="padding:8px 14px;font-size:12px;color:var(--text3);">+${mancanti.length-6} altri...</div>`:'')
+    : '<div class="empty">✓ Tutte le quote risultano pagate</div>';
+
+  // Premi da pagare
+  const daPagare = DB.competizioni.filter(c => { const v=DB.vincitori[c.id]; return v&&v.squadra&&!v.pagato; });
+  document.getElementById('dash-premi-da-pagare').innerHTML = daPagare.length
+    ? daPagare.slice(0,6).map(c => {
+        const v = DB.vincitori[c.id];
+        return `<div class="spesa-row"><span style="font-size:12px;">${c.nome}</span><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;color:var(--text3);">${v.squadra}</span><span class="badge b-oro">${fmt(c.premio)}</span></div></div>`;
+      }).join('')
+    + (daPagare.length>6?`<div style="padding:8px 14px;font-size:12px;color:var(--text3);">+${daPagare.length-6} altri...</div>`:'')
+    : '<div class="empty">✓ Tutti i premi sono stati pagati</div>';
+
+  // Ultimi vincitori
+  const withWin = DB.competizioni.filter(c => DB.vincitori[c.id]?.squadra).slice(-8).reverse();
+  document.getElementById('dash-vincitori').innerHTML = withWin.length
+    ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Competizione</th><th>Vincitore</th><th>Premio</th><th>Stato</th></tr></thead><tbody>`
+    + withWin.map(c => {
+        const v=DB.vincitori[c.id];
+        const t=DB.tornei.find(t=>t.id===c.torneoId);
+        return `<tr><td>${c.nome}<br><span style="font-size:10px;color:var(--text3);">${t?.nome||''}</span></td><td><b>${v.squadra}</b></td><td class="mono c-oro">${fmt(c.premio)}</td><td><span class="badge ${v.pagato?'b-green':'b-oro'}">${v.pagato?'PAGATO':'DA PAGARE'}</span></td></tr>`;
+      }).join('')
+    + '</tbody></table></div>'
+    : '<div class="empty">Nessun vincitore ancora inserito</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MANAGER
+// ═══════════════════════════════════════════════════════════════
+function renderManager() {
+  const q = (document.getElementById('searchManager')?.value||'').toLowerCase();
+  const list = DB.managers.filter(m =>
+    m.nome.toLowerCase().includes(q) || (m.cell||'').includes(q) || (m.email||'').toLowerCase().includes(q)
+  );
+
+  if (!list.length) { document.getElementById('managerList').innerHTML='<div class="empty">Nessun manager trovato</div>'; return; }
+
+  document.getElementById('managerList').innerHTML = list.map(m => {
+    const iscrizioni = DB.iscrizioni.filter(i => i.managerId===m.id);
+    const premi = calcPremiManager(m.id);
+    const initials = m.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const daPagare = premi.filter(p=>!p.pagato).reduce((s,p)=>s+p.premio,0);
+    const totale = premi.reduce((s,p)=>s+p.premio,0);
+
+    return `<div class="manager-card" id="mc-${m.id}">
+      <div class="manager-head">
+        <div class="manager-avatar">${initials}</div>
+        <div class="manager-info">
+          <div class="manager-nome">${m.nome}${m.nick?` <span style="font-size:11px;color:var(--text3);">(${m.nick})</span>`:''}</div>
+          <div class="manager-meta">📱 ${m.cell||'—'} &nbsp;·&nbsp; ✉ ${m.email||'—'}${m.pagamento ? ' &nbsp;·&nbsp; 💳 '+m.pagamento.charAt(0).toUpperCase()+m.pagamento.slice(1) : ''}</div>
+          <div class="manager-meta" style="margin-top:3px;">
+            ${iscrizioni.length} torneo${iscrizioni.length!==1?'i':''} &nbsp;·&nbsp;
+            ${iscrizioni.filter(i=>i.quotaPagata).length}/${iscrizioni.length} quote pagate
+          </div>
+        </div>
+        <div class="manager-stats">
+          <div class="manager-totale ${totale>0?'c-oro':'c-purple'}">${totale>0?fmt(totale):'€0'}</div>
+          ${daPagare>0?`<div style="font-size:11px;color:var(--red);margin-top:2px;">${fmt(daPagare)} da pagare</div>`:''}
+        </div>
+        <div class="manager-actions">
+          <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openModalManager('${m.id}')">✏️</button>
+          <button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteManager('${m.id}')">🗑</button>
+          <button class="btn btn-ghost btn-xs" onclick="toggleManagerDetail('${m.id}')">▾</button>
+        </div>
+      </div>
+      <div class="manager-detail" id="md-${m.id}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Iscrizioni Tornei</div>
+            ${iscrizioni.length ? iscrizioni.map(i => {
+              const t = DB.tornei.find(t=>t.id===i.torneoId);
+              return `<div class="iscrizione-row">
+                <div style="flex:1"><div style="font-weight:600;font-size:13px;">${t?.nome||'Torneo'}</div><div style="font-size:11px;color:var(--text3);">${i.squadra||'—'}</div></div>
+                <span class="mono" style="font-size:12px;">${fmt(i.quota||t?.quota||0)}</span>
+                <label class="toggle" title="Quota pagata">
+                  <input type="checkbox" ${i.quotaPagata?'checked':''} onchange="toggleQuota('${i.id}',this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>`;
+            }).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Nessuna iscrizione</div>'}
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Premi Vinti</div>
+            ${premi.length ? premi.map(p => `
+              <div class="iscrizione-row">
+                <div style="flex:1"><div style="font-size:12px;color:var(--text2);">${p.comp}</div><div style="font-weight:600;font-size:13px;">🏟 ${p.squadra}</div></div>
+                <span class="mono c-oro" style="font-size:12px;">${fmt(p.premio)}</span>
+                <label class="toggle" title="Premio pagato">
+                  <input type="checkbox" ${p.pagato?'checked':''} onchange="togglePremio('${p.compId}',this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            `).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Nessun premio vinto</div>'}
+          </div>
+        </div>
+        ${m.note?`<div style="margin-top:12px;padding:10px 14px;background:var(--bg4);border-radius:6px;font-size:12px;color:var(--text2);">📝 ${m.note}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcPremiManager(managerId) {
+  const result = [];
+  DB.competizioni.forEach(c => {
+    const v = DB.vincitori[c.id];
+    if (!v||!v.squadra) return;
+    // Trova l'iscrizione di questo manager con questa squadra nel torneo
+    const isc = DB.iscrizioni.find(i => i.managerId===managerId && i.torneoId===c.torneoId && i.squadra && i.squadra.toLowerCase()===v.squadra.toLowerCase());
+    if (isc) {
+      result.push({compId:c.id, comp:c.nome, squadra:v.squadra, premio:c.premio, pagato:v.pagato||false});
+    }
+  });
+  return result;
+}
+
+function toggleManagerDetail(id) {
+  const el = document.getElementById('md-'+id);
+  el.classList.toggle('open');
+}
+
+function toggleQuota(iscId, val) {
+  const isc = DB.iscrizioni.find(i=>i.id===iscId);
+  if (isc) { isc.quotaPagata = val; saveDB(); renderDashboard(); }
+}
+
+function togglePremio(compId, val) {
+  if (!DB.vincitori[compId]) DB.vincitori[compId]={};
+  DB.vincitori[compId].pagato = val;
+  saveDB(); renderDashboard(); renderBilancio();
+}
+
+function deleteManager(id) {
+  if (!confirm('Eliminare questo manager?')) return;
+  DB.managers = DB.managers.filter(m=>m.id!==id);
+  DB.iscrizioni = DB.iscrizioni.filter(i=>i.managerId!==id);
+  saveDB(); renderManager();
+}
+
+// ─── MODAL MANAGER ───
+let editingManagerId = null;
+let tempIscrizioni = [];
+
+function openModalManager(id) {
+  editingManagerId = id||null;
+  const m = id ? DB.managers.find(m=>m.id===id) : null;
+  document.getElementById('modalManagerTitle').textContent = id?'Modifica Manager':'Nuovo Manager';
+  document.getElementById('m-nome').value = m?.nome||'';
+  document.getElementById('m-nick').value = m?.nick||'';
+  document.getElementById('m-cell').value = m?.cell||'';
+  document.getElementById('m-email').value = m?.email||'';
+  document.getElementById('m-note').value = m?.note||'';
+  document.getElementById('m-pagamento').value = m?.pagamento||'';
+  tempIscrizioni = id ? DB.iscrizioni.filter(i=>i.managerId===id).map(i=>({...i})) : [];
+  renderTempIscrizioni();
+  document.getElementById('modalManager').classList.add('open');
+}
+
+function renderTempIscrizioni() {
+  document.getElementById('m-iscrizioni').innerHTML = tempIscrizioni.map((isc,idx) => {
+    const t = DB.tornei.find(t=>t.id===isc.torneoId);
+    return `<div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;">
+      <select class="form-select" style="font-size:12px;" onchange="tempIscrizioni[${idx}].torneoId=this.value">
+        <option value="">— Torneo —</option>
+        ${DB.tornei.map(t=>`<option value="${t.id}" ${t.id===isc.torneoId?'selected':''}>${t.nome}</option>`).join('')}
+      </select>
+      <input class="form-input" style="font-size:12px;" placeholder="Squadra" value="${isc.squadra||''}" oninput="tempIscrizioni[${idx}].squadra=this.value">
+      <label class="toggle" title="Quota pagata"><input type="checkbox" ${isc.quotaPagata?'checked':''} onchange="tempIscrizioni[${idx}].quotaPagata=this.checked"><span class="toggle-slider"></span></label>
+      <button class="btn btn-red btn-xs" onclick="tempIscrizioni.splice(${idx},1);renderTempIscrizioni()">✕</button>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:12px;padding:4px 0;">Nessuna iscrizione</div>';
+}
+
+function addIscrizione() {
+  tempIscrizioni.push({id:uid(), managerId:editingManagerId||'', torneoId:'', squadra:'', quotaPagata:false, quota:0});
+  renderTempIscrizioni();
+}
+
+function saveManager() {
+  const nome = document.getElementById('m-nome').value.trim();
+  if (!nome) { alert('Il nome è obbligatorio'); return; }
+  if (editingManagerId) {
+    const m = DB.managers.find(m=>m.id===editingManagerId);
+    if (m) { m.nome=nome; m.nick=document.getElementById('m-nick').value; m.cell=document.getElementById('m-cell').value; m.email=document.getElementById('m-email').value; m.note=document.getElementById('m-note').value; m.pagamento=document.getElementById('m-pagamento').value; }
+    DB.iscrizioni = DB.iscrizioni.filter(i=>i.managerId!==editingManagerId);
+  } else {
+    editingManagerId = uid();
+    DB.managers.push({id:editingManagerId, nome, nick:document.getElementById('m-nick').value, cell:document.getElementById('m-cell').value, email:document.getElementById('m-email').value, note:document.getElementById('m-note').value, pagamento:document.getElementById('m-pagamento').value});
+  }
+  tempIscrizioni.forEach(i=>{ i.managerId=editingManagerId; if(!i.id)i.id=uid(); DB.iscrizioni.push(i); });
+  saveDB(); closeModal('modalManager'); renderManager();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TORNEI
+// ═══════════════════════════════════════════════════════════════
+function renderTornei() {
+  const badgeMap = {classic:'b-blue',mantra:'b-purple',slim:'b-green',mondiale:'b-oro',altro:'b-gray'};
+  document.getElementById('torneiList').innerHTML = DB.tornei.map(t => {
+    const comps = DB.competizioni.filter(c=>c.torneoId===t.id);
+    const iscritti = DB.iscrizioni.filter(i=>i.torneoId===t.id);
+    const incassato = iscritti.filter(i=>i.quotaPagata).reduce((s,i)=>s+(i.quota||t.quota||0),0);
+    return `<div class="comp-card">
+      <div class="comp-head">
+        <div class="comp-name-lbl">${t.nome}</div>
+        <span class="badge ${badgeMap[t.tipo]||'b-gray'}">${t.tipo}</span>
+        <span class="badge b-blue">${fmt(t.quota)}/manager</span>
+        <span class="badge b-green">${iscritti.length} iscritti</span>
+        <button class="btn btn-ghost btn-xs" onclick="openModalTorneo('${t.id}')">✏️</button>
+        <button class="btn btn-red btn-xs" onclick="deleteTorneo('${t.id}')">🗑</button>
+      </div>
+      <div style="padding:12px 18px;">
+        <div style="display:flex;gap:20px;margin-bottom:12px;font-size:12px;color:var(--text2);">
+          <span>💰 Incassato: <b class="c-green">${fmt(incassato)}</b></span>
+          <span>🏆 Competizioni: <b class="c-oro">${comps.length}</b></span>
+          ${t.note?`<span>📝 ${t.note}</span>`:''}
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Competizioni</div>
+        <div style="display:grid;gap:4px;">
+          ${comps.map(c=>{
+            const v=DB.vincitori[c.id];
+            return `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--bg4);border-radius:6px;font-size:12px;">
+              <span style="flex:1;color:var(--text2);">${c.nome}</span>
+              <span class="mono c-oro">${fmt(c.premio)}</span>
+              ${v?.squadra?`<span class="badge b-green">${v.squadra}</span>`:'<span class="badge b-gray">Da assegnare</span>'}
+              <button class="btn btn-ghost btn-xs" onclick="openEditComp('${c.id}')">✏️</button>
+              <button class="btn btn-red btn-xs" onclick="deleteComp('${c.id}')">✕</button>
+            </div>`;
+          }).join('')}
+          ${!comps.length?'<div class="empty" style="padding:16px;">Nessuna competizione</div>':''}
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="addCompToTorneo('${t.id}')">+ Aggiungi Competizione</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">Nessun torneo. Clicca "+ Nuovo Torneo" per iniziare.</div>';
+}
+
+// ─── MODAL TORNEO ───
+let editingTorneoId = null;
+let tempComps = [];
+
+function openModalTorneo(id) {
+  editingTorneoId = id||null;
+  const t = id ? DB.tornei.find(t=>t.id===id) : null;
+  document.getElementById('modalTorneoTitle').textContent = id?'Modifica Torneo':'Nuovo Torneo';
+  document.getElementById('t-nome').value = t?.nome||'';
+  document.getElementById('t-tipo').value = t?.tipo||'classic';
+  document.getElementById('t-quota').value = t?.quota||'';
+  document.getElementById('t-stagione').value = t?.stagione||'2025/26';
+  document.getElementById('t-note').value = t?.note||'';
+  document.getElementById('t-squadre').value = t?.squadreAttese||'';
+  tempComps = id ? DB.competizioni.filter(c=>c.torneoId===id).map(c=>({...c})) : [];
+  renderTempComps();
+  document.getElementById('modalTorneo').classList.add('open');
+}
+
+function renderTempComps() {
+  document.getElementById('t-comps').innerHTML = tempComps.map((c,idx) => `
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;">
+      <input class="form-input" style="font-size:12px;" placeholder="Nome competizione" value="${c.nome||''}" oninput="tempComps[${idx}].nome=this.value">
+      <input class="form-input" style="font-size:12px;width:90px;" placeholder="€ Premio" type="number" value="${c.premio||''}" oninput="tempComps[${idx}].premio=+this.value">
+      <button class="btn btn-red btn-xs" onclick="tempComps.splice(${idx},1);renderTempComps()">✕</button>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:12px;padding:4px 0;">Nessuna competizione</div>';
+}
+
+function addCompTorneo() { tempComps.push({id:uid(),torneoId:editingTorneoId||'',nome:'',premio:0}); renderTempComps(); }
+
+function saveTorneo() {
+  const nome = document.getElementById('t-nome').value.trim();
+  if (!nome) { alert('Il nome è obbligatorio'); return; }
+  const data = {nome, tipo:document.getElementById('t-tipo').value, quota:+document.getElementById('t-quota').value||0, squadreAttese:+document.getElementById('t-squadre').value||0, stagione:document.getElementById('t-stagione').value, note:document.getElementById('t-note').value};
+  if (editingTorneoId) {
+    const t = DB.tornei.find(t=>t.id===editingTorneoId);
+    if (t) Object.assign(t, data);
+    DB.competizioni = DB.competizioni.filter(c=>c.torneoId!==editingTorneoId);
+  } else {
+    editingTorneoId = uid();
+    DB.tornei.push({id:editingTorneoId, ...data});
+  }
+  tempComps.forEach(c=>{ c.torneoId=editingTorneoId; if(!c.id)c.id=uid(); DB.competizioni.push(c); });
+  saveDB(); closeModal('modalTorneo'); renderTornei();
+}
+
+function deleteTorneo(id) {
+  if (!confirm('Eliminare il torneo e tutte le sue competizioni?')) return;
+  DB.tornei = DB.tornei.filter(t=>t.id!==id);
+  DB.competizioni = DB.competizioni.filter(c=>c.torneoId!==id);
+  saveDB(); renderTornei();
+}
+
+function deleteComp(id) {
+  if (!confirm('Eliminare questa competizione?')) return;
+  DB.competizioni = DB.competizioni.filter(c=>c.id!==id);
+  delete DB.vincitori[id];
+  saveDB(); renderTornei();
+}
+
+function addCompToTorneo(torneoId) {
+  const nome = prompt('Nome della competizione:');
+  if (!nome) return;
+  const premio = +prompt('Premio in euro:') || 0;
+  DB.competizioni.push({id:uid(), torneoId, nome, premio});
+  saveDB(); renderTornei();
+}
+
+function openEditComp(compId) {
+  const c = DB.competizioni.find(c=>c.id===compId);
+  if (!c) return;
+  const nome = prompt('Nome competizione:', c.nome);
+  if (nome===null) return;
+  const premio = prompt('Premio (€):', c.premio);
+  if (premio===null) return;
+  c.nome = nome; c.premio = +premio||0;
+  saveDB(); renderTornei();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPETIZIONI
+// ═══════════════════════════════════════════════════════════════
+let compFilter = 'Tutti';
+
+function renderCompPills() {
+  const tornei = ['Tutti', ...DB.tornei.map(t=>t.nome)];
+  document.getElementById('compPills').innerHTML = tornei.map(t =>
+    `<div class="pill ${t===compFilter?'active':''}" onclick="compFilter='${t}';renderCompPills();renderComp()">${t}</div>`
+  ).join('');
+}
+
+function renderComp() {
+  renderCompPills();
+  const q = (document.getElementById('searchComp')?.value||'').toLowerCase();
+  const tornei = compFilter==='Tutti' ? DB.tornei : DB.tornei.filter(t=>t.nome===compFilter);
+  const badgeMap = {classic:'b-blue',mantra:'b-purple',slim:'b-green',mondiale:'b-oro',altro:'b-gray'};
+
+  document.getElementById('compList').innerHTML = tornei.map(t => {
+    const comps = DB.competizioni.filter(c => c.torneoId===t.id && (!q||c.nome.toLowerCase().includes(q)));
+    if (!comps.length) return '';
+    // Partecipanti di questo torneo
+    const iscritti = DB.iscrizioni.filter(i=>i.torneoId===t.id);
+    return `<div class="comp-card">
+      <div class="comp-head">
+        <div class="comp-name-lbl">${t.nome}</div>
+        <span class="badge ${badgeMap[t.tipo]||'b-gray'}">${t.tipo}</span>
+      </div>
+      <div>
+        ${comps.map(c => {
+          const v = DB.vincitori[c.id]||{};
+          const isc = iscritti.find(i=>i.squadra&&v.squadra&&i.squadra.toLowerCase()===v.squadra.toLowerCase());
+          const manager = isc ? DB.managers.find(m=>m.id===isc.managerId) : null;
+          return `<div class="premio-row">
+            <div>
+              <div style="font-weight:600;">${c.nome}</div>
+              ${manager?`<div style="font-size:11px;color:var(--text3);">👤 ${manager.nome}</div>`:''}
+            </div>
+            <span class="mono c-oro">${fmt(c.premio)}</span>
+            <select class="win-select ${v.squadra?'has':''}" onchange="setVincitore('${c.id}','${t.id}',this.value)">
+              <option value="">— Seleziona squadra —</option>
+              ${iscritti.filter(i=>i.squadra).map(i=>`<option value="${i.squadra}" ${i.squadra===v.squadra?'selected':''}>${i.squadra} (${DB.managers.find(m=>m.id===i.managerId)?.nome||'?'})</option>`).join('')}
+              ${!iscritti.some(i=>i.squadra===v.squadra)&&v.squadra?`<option value="${v.squadra}" selected>${v.squadra}</option>`:''}
+            </select>
+            <button class="pag-btn ${v.pagato?'yes':''}" onclick="toggleVincitorePagato('${c.id}')" title="${v.pagato?'Pagato ✓':'Da pagare'}">${v.pagato?'✓':'○'}</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).filter(Boolean).join('') || '<div class="empty">Nessuna competizione trovata</div>';
+}
+
+function setVincitore(compId, torneoId, squadra) {
+  if (!DB.vincitori[compId]) DB.vincitori[compId]={};
+  DB.vincitori[compId].squadra = squadra;
+  DB.vincitori[compId].pagato = DB.vincitori[compId].pagato||false;
+  saveDB(); renderComp(); renderDashboard();
+}
+
+function toggleVincitorePagato(compId) {
+  if (!DB.vincitori[compId]) DB.vincitori[compId]={};
+  DB.vincitori[compId].pagato = !DB.vincitori[compId].pagato;
+  saveDB(); renderComp(); renderDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BILANCIO
+// ═══════════════════════════════════════════════════════════════
+function renderBilancio() {
+  const rows = DB.tornei.map(t => {
+    const isc = DB.iscrizioni.filter(i=>i.torneoId===t.id);
+    const squadre = t.squadreAttese || 0;
+    const quota = t.quota || 0;
+    const incassoAtteso = squadre * quota;
+    const incassato = isc.filter(i=>i.quotaPagata).reduce((s,i)=>s+(i.quota||quota),0);
+    const comps = DB.competizioni.filter(c=>c.torneoId===t.id);
+    const premiTot = comps.reduce((s,c)=>s+c.premio,0);
+    const assegnati = comps.filter(c=>DB.vincitori[c.id]?.squadra).reduce((s,c)=>s+c.premio,0);
+    const pagati = comps.filter(c=>DB.vincitori[c.id]?.pagato).reduce((s,c)=>s+c.premio,0);
+    const utile = incassoAtteso - premiTot;
+    return {t, squadre, quota, incassoAtteso, incassato, premiTot, assegnati, pagati, utile};
+  });
+
+  const totAtteso = rows.reduce((s,r)=>s+r.incassoAtteso,0);
+  const totIncassato = rows.reduce((s,r)=>s+r.incassato,0);
+  const totPremi = rows.reduce((s,r)=>s+r.premiTot,0);
+  const totAssegnati = rows.reduce((s,r)=>s+r.assegnati,0);
+  const totPagati = rows.reduce((s,r)=>s+r.pagati,0);
+  const totUtile = rows.reduce((s,r)=>s+r.utile,0);
+  const spese = DB.spese.reduce((s,sp)=>s+(sp.importo||0),0);
+  const utileNetto = totUtile - spese;
+
+  document.getElementById('bil-stats').innerHTML = `
+    <div class="stat"><div class="stat-l">Incasso Atteso</div><div class="stat-v c-oro">${fmt(totAtteso)}</div></div>
+    <div class="stat"><div class="stat-l">Già Incassato</div><div class="stat-v c-green">${fmt(totIncassato)}</div></div>
+    <div class="stat"><div class="stat-l">Da Incassare</div><div class="stat-v c-red">${fmt(totAtteso-totIncassato)}</div></div>
+    <div class="stat"><div class="stat-l">Premi Totali</div><div class="stat-v c-blue">${fmt(totPremi)}</div></div>
+    <div class="stat"><div class="stat-l">Premi Pagati</div><div class="stat-v c-green">${fmt(totPagati)}</div></div>
+    <div class="stat"><div class="stat-l">Da Pagare</div><div class="stat-v c-red">${fmt(totAssegnati-totPagati)}</div></div>
+    <div class="stat"><div class="stat-l">💰 Utile Lordo</div><div class="stat-v ${totUtile>=0?'c-green':'c-red'}">${fmt(totUtile)}</div></div>
+    <div class="stat"><div class="stat-l">💰 Utile Netto</div><div class="stat-v ${utileNetto>=0?'c-green':'c-red'}">${fmt(utileNetto)}</div></div>
+  `;
+
+  document.getElementById('bil-table').innerHTML = `<div class="tbl-wrap"><table class="tbl">
+    <thead><tr>
+      <th>Torneo</th><th>Squadre</th><th>Quota</th>
+      <th>Incasso Atteso</th><th>Incassato</th>
+      <th>Premi Tot.</th><th>Pagati</th><th>Utile</th>
+    </tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td style="font-weight:600;">${r.t.nome}</td>
+      <td class="mono">${r.squadre||'—'}</td>
+      <td class="mono">${r.quota?fmt(r.quota):'—'}</td>
+      <td class="mono c-oro">${r.incassoAtteso?fmt(r.incassoAtteso):'—'}</td>
+      <td class="mono c-green">${fmt(r.incassato)}</td>
+      <td class="mono">${fmt(r.premiTot)}</td>
+      <td class="mono ${r.pagati>0?'c-green':''}">${fmt(r.pagati)}</td>
+      <td class="mono ${r.utile>0?'c-green':r.utile<0?'c-red':''}">${r.incassoAtteso?fmt(r.utile):'—'}</td>
+    </tr>`).join('')}</tbody>
+    <tfoot><tr class="tot">
+      <td>TOTALI</td><td>—</td><td>—</td>
+      <td>${fmt(totAtteso)}</td><td>${fmt(totIncassato)}</td>
+      <td>${fmt(totPremi)}</td><td>${fmt(totPagati)}</td>
+      <td class="${totUtile>=0?'c-green':'c-red'}">${fmt(totUtile)}</td>
+    </tr></tfoot>
+  </table></div>`;
+
+  document.getElementById('bil-spese').innerHTML =
+    DB.spese.map(sp=>`<div class="spesa-row"><span>${sp.desc}</span><span class="mono c-red">-${fmt(sp.importo)}</span></div>`).join('') +
+    `<div class="spesa-row" style="font-weight:700;color:var(--oro);border-top:1px solid var(--oro-dim);margin-top:4px;padding-top:10px;">
+      <span>TOTALE SPESE</span><span class="mono">-${fmt(spese)}</span>
+    </div>`;
+
+  document.getElementById('bil-cassa').innerHTML = `
+    <div class="spesa-row"><span>Incasso atteso totale</span><span class="mono c-oro">${fmt(totAtteso)}</span></div>
+    <div class="spesa-row"><span>Già incassato</span><span class="mono c-green">${fmt(totIncassato)}</span></div>
+    <div class="spesa-row"><span>Ancora da incassare</span><span class="mono c-red">-${fmt(totAtteso-totIncassato)}</span></div>
+    <div class="spesa-row" style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px;"><span>Premi totali</span><span class="mono">-${fmt(totPremi)}</span></div>
+    <div class="spesa-row"><span>Già pagati</span><span class="mono c-green">${fmt(totPagati)}</span></div>
+    <div class="spesa-row"><span>Ancora da pagare</span><span class="mono c-red">-${fmt(totAssegnati-totPagati)}</span></div>
+    <div class="spesa-row" style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px;"><span>Spese</span><span class="mono c-red">-${fmt(spese)}</span></div>
+    <div class="spesa-row" style="border-top:2px solid var(--oro-dim);margin-top:6px;padding-top:10px;font-weight:700;">
+      <span>UTILE LORDO</span><span class="mono ${totUtile>=0?'c-green':'c-red'}">${fmt(totUtile)}</span>
+    </div>
+    <div class="spesa-row" style="font-weight:700;font-size:15px;background:var(--oro-bg);padding:12px 14px;border-radius:6px;margin-top:8px;">
+      <span style="color:var(--oro);">💰 UTILE NETTO</span>
+      <span class="mono ${utileNetto>=0?'c-green':'c-red'}">${fmt(utileNetto)}</span>
+    </div>
+  `;
+
+  // Metodi di pagamento
+  const metodiLabel = {paypal:'PayPal',bonifico:'Bonifico',satispay:'Satispay',contanti:'Contanti',altro:'Altro','':'Non specificato'};
+  const metodiColor = {paypal:'b-blue',bonifico:'b-oro',satispay:'b-green',contanti:'b-purple',altro:'b-gray','':'b-gray'};
+  const cnt = {};
+  DB.managers.forEach(m=>{ const k=m.pagamento||''; cnt[k]=(cnt[k]||0)+1; });
+  const tot = DB.managers.length;
+  document.getElementById('bil-metodi').innerHTML = Object.entries(cnt)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([k,n])=>`<div class="spesa-row">
+      <span style="font-weight:600;">${metodiLabel[k]||k}</span>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:12px;color:var(--text3);">${n} manager</span>
+        <span class="badge ${metodiColor[k]||'b-gray'}">${Math.round(n/tot*100)}%</span>
+      </span>
+    </div>`).join('') || '<div class="empty">Nessun metodo registrato</div>';
+}
+
+
+function renderSpese() {
+  const tot = DB.spese.reduce((s,sp)=>s+(sp.importo||0),0);
+  document.getElementById('speseList').innerHTML = `
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Descrizione</th><th>Importo</th><th>Data</th><th>Note</th><th></th></tr></thead><tbody>
+    ${DB.spese.map(sp=>`<tr>
+      <td><b>${sp.desc}</b></td>
+      <td class="mono c-red">${fmt(sp.importo)}</td>
+      <td style="color:var(--text3);font-size:12px;">${sp.data||'—'}</td>
+      <td style="color:var(--text3);font-size:12px;">${sp.note||''}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-xs" onclick="editSpesa('${sp.id}')">✏️</button>
+        <button class="btn btn-red btn-xs" onclick="deleteSpesa('${sp.id}')">🗑</button>
+      </td>
+    </tr>`).join('')}
+    <tr class="tot"><td>TOTALE</td><td class="mono">${fmt(tot)}</td><td></td><td></td><td></td></tr>
+    </tbody></table></div>`;
+}
+
+function openModalSpesa(id) {
+  const sp = id ? DB.spese.find(s=>s.id===id) : null;
+  document.getElementById('sp-desc').value = sp?.desc||'';
+  document.getElementById('sp-importo').value = sp?.importo||'';
+  document.getElementById('sp-data').value = sp?.data||'';
+  document.getElementById('sp-note').value = sp?.note||'';
+  document.getElementById('modalSpesa').dataset.editId = id||'';
+  document.getElementById('modalSpesa').classList.add('open');
+}
+
+function editSpesa(id) { openModalSpesa(id); }
+
+function saveSpesa() {
+  const desc = document.getElementById('sp-desc').value.trim();
+  if (!desc) { alert('La descrizione è obbligatoria'); return; }
+  const editId = document.getElementById('modalSpesa').dataset.editId;
+  const data = {desc, importo:+document.getElementById('sp-importo').value||0, data:document.getElementById('sp-data').value, note:document.getElementById('sp-note').value};
+  if (editId) { const sp=DB.spese.find(s=>s.id===editId); if(sp) Object.assign(sp,data); }
+  else DB.spese.push({id:uid(),...data});
+  saveDB(); closeModal('modalSpesa'); renderSpese();
+}
+
+function deleteSpesa(id) {
+  if (!confirm('Eliminare questa spesa?')) return;
+  DB.spese = DB.spese.filter(s=>s.id!==id);
+  saveDB(); renderSpese();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+
+loadDB();
+renderDashboard();
+renderCompPills();
+</script>
+</body>
+</html>

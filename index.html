@@ -1,3 +1,4 @@
+Prova l'AI direttamente nelle tue app preferite … Usa Gemini per generare bozze e perfezionare i contenuti e ottieni Gemini Pro con accesso alla nuova generazione di Google AI
 <!DOCTYPE html
     <div class="card">
       <div class="card-title">💳 Metodi di Pagamento</div>
@@ -219,19 +220,10 @@ header{
     <span id="syncDot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;transition:background .4s;flex-shrink:0;animation:pulse 1.5s infinite;"></span>
     <span id="syncText" style="font-size:11px;color:var(--text2);white-space:nowrap;">Connessione...</span>
   </span>
-  <span id="syncStatus" style="font-size:11px;color:var(--text3);margin-left:8px;display:flex;align-items:center;gap:5px;">
-    <span id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--text3);display:inline-block;"></span>
-    <span id="syncText">Connessione...</span>
-  </span>
-  <span style="font-size:11px;color:var(--text3);">Auto-salvato</span>
+
 </header>
 
-<div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:5px 32px;display:flex;align-items:center;gap:12px;justify-content:flex-end;">
-  <span id="syncStatus" style="font-size:11px;color:var(--oro);">☁ Connessione...</span>
-  <button class="btn btn-ghost btn-xs" onclick="exportData()" title="Backup JSON">⬇ Backup</button>
-  <button class="btn btn-ghost btn-xs" onclick="document.getElementById('importFile').click()" title="Ripristina da backup">⬆ Ripristina</button>
-  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
-</div>
+
 <div class="tabs">
   <div class="tab active" data-page="dashboard" onclick="nav('dashboard')">📊 Dashboard</div>
   <div class="tab" data-page="manager" onclick="nav('manager')">👤 Manager / Rubrica</div>
@@ -784,7 +776,7 @@ function renderManager() {
   const q = (document.getElementById('searchManager')?.value||'').toLowerCase();
   const list = DB.managers.filter(m =>
     m.nome.toLowerCase().includes(q) || (m.cell||'').includes(q) || (m.email||'').toLowerCase().includes(q)
-  );
+  ).sort((a,b) => a.nome.localeCompare(b.nome, 'it'));
 
   if (!list.length) { document.getElementById('managerList').innerHTML='<div class="empty">Nessun manager trovato</div>'; return; }
 
@@ -823,7 +815,7 @@ function renderManager() {
             ${iscrizioni.length ? iscrizioni.map(i => {
               const t = DB.tornei.find(t=>t.id===i.torneoId);
               return `<div class="iscrizione-row">
-                <div style="flex:1"><div style="font-weight:600;font-size:13px;">${t?.nome||'Torneo'}</div><div style="font-size:11px;color:var(--text3);">${i.squadra||'—'}</div></div>
+                <div style="flex:1"><div style="font-weight:600;font-size:13px;">${t?.nome||'Torneo'}${i.lega?` <span style="font-size:10px;color:var(--oro);background:var(--oro-bg);padding:1px 5px;border-radius:3px;">${i.lega}</span>`:''}</div><div style="font-size:11px;color:var(--text3);">🏟 ${i.squadra||'—'}</div></div>
                 <span class="mono" style="font-size:12px;">${fmt(i.quota||t?.quota||0)}</span>
                 <label class="toggle" title="Quota pagata">
                   <input type="checkbox" ${i.quotaPagata?'checked':''} onchange="toggleQuota('${i.id}',this.checked)">
@@ -911,10 +903,21 @@ function openModalManager(id) {
 function renderTempIscrizioni() {
   document.getElementById('m-iscrizioni').innerHTML = tempIscrizioni.map((isc,idx) => {
     const t = DB.tornei.find(t=>t.id===isc.torneoId);
-    return `<div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;">
-      <select class="form-select" style="font-size:12px;" onchange="tempIscrizioni[${idx}].torneoId=this.value">
+    // Leghe/campionati disponibili per questo torneo
+    const leghe = isc.torneoId ? [...new Set(
+      DB.competizioni
+        .filter(c=>c.torneoId===isc.torneoId && c.nome)
+        .map(c=>c.nome.split('—')[0].trim())
+        .filter(Boolean)
+    )].sort() : [];
+    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;">
+      <select class="form-select" style="font-size:12px;" onchange="tempIscrizioni[${idx}].torneoId=this.value;renderTempIscrizioni()">
         <option value="">— Torneo —</option>
         ${DB.tornei.map(t=>`<option value="${t.id}" ${t.id===isc.torneoId?'selected':''}>${t.nome}</option>`).join('')}
+      </select>
+      <select class="form-select" style="font-size:12px;" onchange="tempIscrizioni[${idx}].lega=this.value">
+        <option value="">— Lega —</option>
+        ${leghe.map(l=>`<option value="${l}" ${l===isc.lega?'selected':''}>${l}</option>`).join('')}
       </select>
       <input class="form-input" style="font-size:12px;" placeholder="Squadra" value="${isc.squadra||''}" oninput="tempIscrizioni[${idx}].squadra=this.value">
       <label class="toggle" title="Quota pagata"><input type="checkbox" ${isc.quotaPagata?'checked':''} onchange="tempIscrizioni[${idx}].quotaPagata=this.checked"><span class="toggle-slider"></span></label>
@@ -922,6 +925,7 @@ function renderTempIscrizioni() {
     </div>`;
   }).join('') || '<div style="color:var(--text3);font-size:12px;padding:4px 0;">Nessuna iscrizione</div>';
 }
+
 
 function addIscrizione() {
   tempIscrizioni.push({id:uid(), managerId:editingManagerId||'', torneoId:'', squadra:'', quotaPagata:false, quota:0});
